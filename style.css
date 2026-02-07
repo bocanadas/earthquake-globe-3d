@@ -1,0 +1,18 @@
+/* Remove default browser margins and padding */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Set black background (space aesthetic) and prevent scrollbars */
+body {
+  overflow: hidden;
+  background: #000000;
+}
+
+/* Make the canvas container fill the entire window */
+#app {
+  width: 100vw;
+  height: 100vh;
+}
