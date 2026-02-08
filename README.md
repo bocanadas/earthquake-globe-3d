@@ -1,6 +1,6 @@
 # Global Earthquake Monitor
 
-A 3D interactive globe that shows 24 hour frame real-time earthquake data from around the world. Built with Three.js and the USGS Earthquake API.
+A 3D interactive globe that shows real-time earthquake data from around the world. Built with Three.js and the USGS Earthquake API.
 
 ## Live Demo
 
