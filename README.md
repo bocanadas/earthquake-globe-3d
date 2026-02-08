@@ -23,7 +23,7 @@ The project uses the **USGS Earthquake API** to get live earthquake data for the
 **What the API returns:**
 - An array of earthquake objects with these properties:
   - `geometry.coordinates` - [longitude, latitude, depth in km]
-  - `properties.mag` - Magnitude (strength of earthquake)
+  - `properties.mag` - Magnitude (strength of earthquake on Moment Magnitude Scale)
   - `properties.place` - Text description of where it happened
   - `properties.time` - When it happened (Unix timestamp)
   - `properties.url` - Link to the full USGS page with more details
@@ -32,7 +32,7 @@ The project uses the **USGS Earthquake API** to get live earthquake data for the
 **Technologies:**
 - Three.js for the 3D rendering and camera controls
 - Vite as the build tool
-- Vanilla JavaScript for everything else
+- JavaScript for everything else
 
 ## Running Locally
 
