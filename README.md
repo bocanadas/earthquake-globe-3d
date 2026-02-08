@@ -1,6 +1,6 @@
 # Global Earthquake Monitor
 
-A 3D interactive globe that shows real-time earthquake data from around the world. Built with Three.js and the USGS Earthquake API.
+A 3D interactive globe that shows 24 hour frame real-time earthquake data from around the world. Built with Three.js and the USGS Earthquake API.
 
 ## Live Demo
 
@@ -12,7 +12,7 @@ This project visualizes earthquakes from the past 24 hours on an interactive 3D 
 
 ## How the API Works
 
-The project uses the **USGS Earthquake API** to get live earthquake data.
+The project uses the **USGS Earthquake API** to get live earthquake data for the past 24 hours.
 
 **API Details:**
 - Endpoint: `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson`
