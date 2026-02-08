@@ -1,0 +1,82 @@
+PROMPT HISTORY
+
+AI Tool Used: Claude (Anthropic's Claude Code CLI)
+
+========================================
+INITIAL PROJECT SETUP
+========================================
+
+Prompt 1:
+"I'm building a 3D earthquake visualization globe for a school project. I want to learn step-by-step how everything works not just copy code blindly. Can you help me build this from scratch using Vite, vanilla JavaScript, and Three.js? I want it to: 1 Show a spinning Earth globe, 2 Fetch real-time earthquake data from an API, 3 Display earthquakes as colored dots on the globe based on magnitude, 4 Let me click on earthquakes to see details. I'm familiar with Python but learning JavaScript. Please explain each piece as we go and use simple language without too much jargon."
+
+Result: Set up the entire project structure, created package.json, index.html, style.css, and main.js. Got the basic spinning Earth working with Three.js.
+
+========================================
+UNDERSTANDING CONCEPTS
+========================================
+
+Prompt 2:
+"how does it know what time zone im in? and can you explain to me user data you didnt really explain that well do me how that works. and also the html span how do you reference an item and place it into the html. also how do you check the data from the api like if i were on my own and didnt know how it was structured how would i go about looking at how it looks?"
+
+Result: Got detailed explanations of:
+- How toLocaleString() detects timezone from browser/OS
+- What userData is and why it's useful (like a backpack attached to 3D objects)
+- How getElementById() and span elements work
+- Different ways to inspect API responses (console.log, browser DevTools, Postman, etc.)
+
+========================================
+UI IMPROVEMENTS
+========================================
+
+Prompt 3:
+"can you help me align the legend i made in index.html and styles.css to the bottom of the screen please"
+
+Result: Moved the legend to the bottom center of the screen with better horizontal spacing. 
+
+Prompt 4:
+"actually can you just add a click to start button to get rid of the overlay instead of mouse movement"
+
+Result: Changed the intro overlay from fading on mouse movement to having a "Start" button. Made it feel more intentional and polished.
+
+========================================
+DEBUGGING / FIXES
+========================================
+
+During the project I encountered and fixed several bugs:
+
+- Black screen issue: Earth texture wasn't loading because I forgot the leading slash in the path
+- Dots not rotating with Earth: Had to add earthquake markers as children of earthGlobe instead of the scene
+- Purple dots staying purple: Fixed the originalColor storage timing issue
+- Pause rotation feature: Implemented isEarthPaused flag
+
+========================================
+DEPLOYMENT
+========================================
+
+Prompt 5:
+"How do we host this now on a website? we said we would use vercel correct?"
+
+Result: Got instructions for deploying to Vercel.
+
+========================================
+ASSIGNMENT CHECK
+========================================
+
+Prompt 6:
+"do i have to worry about any safety concerns when making the repo public or deploying can you also check that i met the requirements for this project"
+
+Result: Confirmed no security issues (USGS API is public, no keys needed)
+
+========================================
+WHAT I LEARNED
+========================================
+
+Working with Claude taught me:
+- Using Three.js for 3D graphics
+- How APIs work and how to fetch/parse JSON data
+- JavaScript concepts like async/await, event listeners, and DOM manipulation
+- CSS positioning and modern design techniques
+- How raycasting works for 3D click detection
+- The importance of parent-child relationships in 3D scene graphs
+
+The AI was helpful for explaining concepts in simple terms and helping me debug when I got stuck, but I made sure to understand each piece before moving on. I also implemented some features myself (like the pause rotation) to make sure I really got it.
