@@ -25,6 +25,30 @@ function latLonToVector3(lat, lon, radius) {
 
 console.log('✓ Helper function ready (lat/lon → 3D coordinates)');
 
+// === CLICK DETECTION SETUP ===
+// Raycaster shoots invisible rays to detect what you clicked
+const raycaster = new THREE.Raycaster();
+
+// Store mouse position (normalized to -1 to 1 range)
+const mouse = new THREE.Vector2();
+
+// Track currently selected earthquake (null if none selected)
+let selectedEarthquake = null;
+
+let isEarthPaused = false;
+
+console.log('✓ Click detection setup ready');
+
+// === INTRO OVERLAY FADE ON BUTTON CLICK ===
+function fadeIntro() {
+  const intro = document.getElementById('intro-overlay');
+  intro.classList.add('fade-out');
+}
+
+// Listen for start button click
+document.getElementById('start-btn').addEventListener('click', fadeIntro);
+console.log('✓ Intro overlay ready (click "Click to Start" button)');
+
 // === CREATE 3D WORLD (Scene) ===
 const scene = new THREE.Scene();
 console.log('✓ 3D world (scene) created');
@@ -111,28 +135,21 @@ console.log('✓ Mouse controls enabled (drag to rotate, scroll to zoom)');
 // === EARTHQUAKE FUNCTIONS ===
 
 // Function 1: Fetch earthquake data from USGS API
-// This downloads the earthquake data from the internet
 async function fetchEarthquakes() {
-  console.log('📡 Fetching earthquake data from USGS...');
-
   try {
-    // Send a request to the USGS API (like clicking a link)
-    // The API sends back earthquake data instead of a webpage
     const response = await fetch(
       'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson'
     );
 
-    // Convert the response to JSON (a format JavaScript can understand)
-    // JSON is like a structured list of data
+    // Convert the response to JSON
     const data = await response.json();
 
     console.log(`✓ Found ${data.features.length} earthquakes in the past 24 hours`);
     return data.features; // Return the array of earthquakes
 
   } catch (error) {
-    // If something goes wrong (no internet, API is down, etc.), show error
-    console.error('❌ Failed to fetch earthquakes:', error);
-    return []; // Return empty array so the code doesn't crash
+    console.error('Failed to fetch earthquakes:', error);
+    return [];
   }
 }
 
@@ -146,28 +163,25 @@ function createEarthquakeMarker(earthquake) {
 
   // Calculate size based on magnitude
   // Small earthquakes = tiny dots, big earthquakes = bigger dots
-  // Math.max ensures minimum size of 0.02 so tiny quakes are still visible
+  // Math.max ensures minimum size of 0.012 so tiny quakes are still visible
   const size = Math.max(0.012, mag * 0.012);
 
   // Pick color based on magnitude (green → yellow → orange → red)
   let color;
   if (mag < 2.5) {
-    color = 0x00ff00;  // Green for minor earthquakes (barely noticeable)
+    color = 0x00ff00;  // Green for minor earthquakes
   } else if (mag < 4.5) {
-    color = 0xffff00;  // Yellow for light earthquakes (you'd feel it)
+    color = 0xffff00;  // Yellow for light earthquakes
   } else if (mag < 6.0) {
-    color = 0xff9900;  // Orange for strong earthquakes (can cause damage)
+    color = 0xff9900;  // Orange for strong earthquakes
   } else {
-    color = 0xff0000;  // Red for major earthquakes (serious damage)
+    color = 0xff0000;  // Red for major earthquakes
   }
 
   // Create a small glowing sphere (the earthquake marker)
   const markerGeometry = new THREE.SphereGeometry(size, 16, 16);
-  const markerMaterial = new THREE.MeshBasicMaterial({
-    color: color,           // The color we calculated above
-    transparent: true,      // Allow transparency
-    opacity: 1           // Slightly see-through (0 = invisible, 1 = solid)
-  });
+  const markerMaterial = new THREE.MeshBasicMaterial({color: color, opacity: 1});
+
   const marker = new THREE.Mesh(markerGeometry, markerMaterial);
 
   // Position it on the Earth's surface using our helper function
@@ -175,11 +189,14 @@ function createEarthquakeMarker(earthquake) {
   const position = latLonToVector3(lat, lon, earthRadius + 0.01);
   marker.position.copy(position);
 
-  // Store earthquake info on the marker (we'll use this later for clicking)
+  // Store earthquake info on the marker (for clicking and info panel)
   marker.userData = {
     magnitude: mag,
     location: earthquake.properties.place,
-    time: new Date(earthquake.properties.time)
+    time: new Date(earthquake.properties.time),
+    depth: coords[2] || 0,  // Depth in km (third coordinate)
+    url: earthquake.properties.url,  // USGS detail page URL
+    originalColor: color    // Store original color for restoration
   };
 
   return marker; // Return the marker so we can add it to the scene
@@ -211,6 +228,135 @@ async function loadEarthquakes() {
   return earthquakeGroup;
 }
 
+// === CLICK DETECTION FUNCTIONS ===
+
+// Function 1: Handle mouse clicks
+function onMouseClick(event) {
+  // Convert mouse position from pixels to normalized (-1 to 1) coordinates
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  // Check what was clicked
+  checkIntersections();
+}
+
+// Function 2: Check what the ray hit
+function checkIntersections() {
+  // Update raycaster with current camera and mouse position
+  raycaster.setFromCamera(mouse, camera);
+
+  // Get all earthquake markers from the earthquake group
+  const earthquakeMarkers = earthGlobe.children[0]?.children || [];
+
+  // Check which objects the ray intersects
+  const intersects = raycaster.intersectObjects(earthquakeMarkers);
+
+  if (intersects.length > 0) {
+    // We hit an earthquake! Select it
+    const clickedMarker = intersects[0].object;
+    selectEarthquake(clickedMarker);
+  } else {
+    // Clicked empty space - deselect
+    deselectEarthquake();
+  }
+}
+
+// Function 3: Select an earthquake
+function selectEarthquake(marker) {
+  // If there's already a selected earthquake, deselect it first
+  if (selectedEarthquake) {
+    deselectEarthquake();
+  }
+
+  isEarthPaused = true;
+
+  // Store the selected earthquake
+  selectedEarthquake = marker;
+
+  // Change color to purple/magenta to highlight it
+  selectedEarthquake.material.color.setHex(0xff00ff);
+
+  // Make it slightly bigger for emphasis
+  selectedEarthquake.scale.set(1.5, 1.5, 1.5);
+
+  // Store original color so we can restore it later
+  selectedEarthquake.userData.originalColor = marker.userData.originalColor;
+
+  // Show the info panel with earthquake data
+  showInfoPanel(marker.userData);
+
+  console.log('📍 Selected earthquake:', marker.userData.location);
+}
+
+// Function 4: Deselect earthquake
+function deselectEarthquake() {
+  if (!selectedEarthquake) return;
+
+  isEarthPaused = false;
+
+  // Restore original color
+  selectedEarthquake.material.color.setHex(
+    selectedEarthquake.userData.originalColor
+  );
+
+  // Restore original size
+  selectedEarthquake.scale.set(1, 1, 1);
+
+  // Clear selection
+  selectedEarthquake = null;
+
+  // Hide the info panel
+  hideInfoPanel();
+
+  console.log('✖️ Deselected earthquake');
+}
+
+// Function 5: Show info panel
+function showInfoPanel(earthquakeData) {
+  const infoPanel = document.getElementById('earthquake-info');
+
+  // Fill in the earthquake data
+  document.getElementById('info-magnitude').textContent =
+    earthquakeData.magnitude.toFixed(1);
+
+  document.getElementById('info-location').textContent =
+    earthquakeData.location;
+
+  // Format the time nicely
+  const timeString = earthquakeData.time.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZoneName: 'short'
+  });
+  document.getElementById('info-time').textContent = timeString;
+
+  // Add depth
+  document.getElementById('info-depth').textContent =
+    earthquakeData.depth ? earthquakeData.depth.toFixed(1) : 'Unknown';
+
+  // Set the USGS details link
+  const urlLink = document.getElementById('info-url');
+  if (earthquakeData.url) {
+    urlLink.href = earthquakeData.url;
+    urlLink.style.display = 'inline';
+  } else {
+    urlLink.style.display = 'none';
+  }
+
+  // Show the panel
+  infoPanel.classList.remove('hidden');
+}
+
+// Function 6: Hide info panel
+function hideInfoPanel() {
+  const infoPanel = document.getElementById('earthquake-info');
+  infoPanel.classList.add('hidden');
+}
+
 // === ANIMATION LOOP ===
 const rotationSpeed = 0.001;
 
@@ -219,11 +365,21 @@ function animate() {
   // This creates a loop: animate -> next frame -> animate -> next frame...
   requestAnimationFrame(animate);
 
-  // Auto-rotate the Earth slowly around the Y axis (vertical axis through poles)
-  earthGlobe.rotation.y += rotationSpeed;
+  if (!isEarthPaused) {
+    // Auto-rotate the Earth slowly around the Y axis (vertical axis through poles)
+    earthGlobe.rotation.y += rotationSpeed;
+  }
 
   // Update controls (needed for the smooth damping effect to work)
   controls.update();
+
+  // Animate selected earthquake (pulsing effect)
+  if (selectedEarthquake) {
+    // Create pulsing effect using sine wave
+    const pulseScale = 1.5 + Math.sin(Date.now() * 0.005) * 0.2;
+    selectedEarthquake.scale.set(pulseScale, pulseScale, pulseScale);
+  }
+
 
   // Draw the scene from the camera's perspective onto the screen
   renderer.render(scene, camera);
@@ -247,6 +403,18 @@ window.addEventListener('resize', () => {
 loadEarthquakes().then((earthquakeGroup) => {
   console.log('🎉 Earthquake visualization ready!');
 });
+
+// === SET UP CLICK LISTENERS ===
+// Listen for clicks on the canvas
+renderer.domElement.addEventListener('click', onMouseClick);
+console.log('✓ Click listener added');
+
+// Listen for close button clicks
+document.getElementById('close-btn').addEventListener('click', (event) => {
+  event.stopPropagation();  // Prevent click from triggering canvas click
+  deselectEarthquake();
+});
+console.log('✓ Close button listener added');
 
 // === START THE ANIMATION ===
 console.log('🚀 Starting animation loop...');

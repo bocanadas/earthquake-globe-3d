@@ -7,8 +7,46 @@
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
+    <!-- Intro Overlay (fades on button click) -->
+    <div id="intro-overlay" class="intro-overlay">
+      <h1 class="intro-title">Global Earthquake Monitor</h1>
+      <p class="intro-subtitle">Click earthquakes for details • Drag to rotate • Scroll to zoom</p>
+      <button id="start-btn" class="start-button">Start</button>
+    </div>
+
     <!-- 3D canvas will be added here by JavaScript -->
     <div id="app"></div>
+
+    <!-- Earthquake Info Panel -->
+    <!-- This is hidden by default and appears when you click an earthquake -->
+    <div id="earthquake-info" class="info-panel hidden">
+      <!-- Close button (X in top-right corner) -->
+      <button id="close-btn" class="close-button">&times;</button>
+
+      <!-- Panel title -->
+      <h2 id="info-title">Earthquake Details</h2>
+
+      <!-- Content container -->
+      <div class="info-content">
+        <!-- <strong> is the label, <span> is where JS puts the data -->
+        <p><strong>Magnitude:</strong> <span id="info-magnitude">-</span></p>
+        <p><strong>Location:</strong> <span id="info-location">-</span></p>
+        <p><strong>Time:</strong> <span id="info-time">-</span></p>
+        <p><strong>Depth:</strong> <span id="info-depth">-</span> km</p>
+        <p><strong>Details:</strong> <a id="info-url" href="#" target="_blank">View on USGS</a></p>
+      </div>
+    </div>
+
+    <!-- Magnitude Legend (bottom of screen) -->
+    <div class="legend">
+      <p><strong>Magnitude Legend:</strong></p>
+      <ul>
+        <li><span class="legend-color green"></span> &lt; 2.5</li>
+        <li><span class="legend-color yellow"></span> 2.5 - 4.5</li>
+        <li><span class="legend-color orange"></span> 4.5 - 6.0</li>
+        <li><span class="legend-color red"></span> &gt; 6.0</li>
+      </ul>
+    </div>
 
     <!-- main JavaScript file -->
     <script type="module" src="/main.js"></script>
