@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Earthquakes Globe</title>
+    <title>Global Earthquake Monitor</title>
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
@@ -18,15 +18,12 @@
     <div id="app"></div>
 
     <!-- Earthquake Info Panel -->
-    <!-- This is hidden by default and appears when you click an earthquake -->
     <div id="earthquake-info" class="info-panel hidden">
       <!-- Close button (X in top-right corner) -->
       <button id="close-btn" class="close-button">&times;</button>
 
-      <!-- Panel title -->
       <h2 id="info-title">Earthquake Details</h2>
 
-      <!-- Content container -->
       <div class="info-content">
         <!-- <strong> is the label, <span> is where JS puts the data -->
         <p><strong>Magnitude:</strong> <span id="info-magnitude">-</span></p>
